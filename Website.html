@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Determinant & Row Swap Explorer</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-primary: #38bdf8;
+            --accent-secondary: #818cf8;
+            --row1-color: #f43f5e;
+            --row2-color: #0ea5e9;
+            --row3-color: #10b981;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-primary);
+            margin-bottom: 5px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 1.25rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            color: var(--accent-secondary);
+        }
+
+        .matrix-display-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .matrix-box {
+            background: #0f172a;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            min-width: 220px;
+        }
+
+        .matrix-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--accent-primary);
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .matrix-cell {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .row-0 { border-color: var(--row1-color); color: var(--row1-color); }
+        .row-1 { border-color: var(--row2-color); color: var(--row2-color); }
+        .row-2 { border-color: var(--row3-color); color: var(--row3-color); }
+
+        .det-value {
+            font-size: 1.3rem;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        input[type="range"] {
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: #0f172a;
+            border: none;
+            padding: 12px 24px;
+            font-weight: bold;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .info-card {
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid var(--accent-primary);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Matrix Row Swap & Determinant Explorer</h1>
+        <p class="subtitle">Interactive visualization of 3×3 matrix determinants and row interchange properties</p>
+
+        <div class="section">
+            <h2>Live Matrix Transformation</h2>
+            <div class="matrix-display-container">
+                <div class="matrix-box">
+                    <div class="matrix-title">Matrix A (Original)</div>
+                    <div class="matrix-grid" id="matrixA"></div>
+                    <div class="det-value">det(A) = <span id="detA">6</span></div>
+                </div>
+
+                <div style="font-size: 2rem; font-weight: bold; color: var(--accent-secondary);">⇄</div>
+
+                <div class="matrix-box">
+                    <div class="matrix-title" id="matrixBTitle">Matrix B (Row 1 ↔ Row 2)</div>
+                    <div class="matrix-grid" id="matrixB"></div>
+                    <div class="det-value">det(B) = <span id="detB">-6</span></div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button id="swapBtn">Swap Rows 1 & 2</button>
+                <button id="resetBtn" style="background: linear-gradient(135deg, #f43f5e, #fb7185); color: #fff;">Reset Exercise 3 Values</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Adjust Matrix Entries (Sliders)</h2>
+            <div class="controls-grid" id="slidersContainer">
+                <!-- Sliders generated via JavaScript -->
+            </div>
+        </div>
+
+        <div class="info-card">
+            <strong>Key Takeaway:</strong> Notice how swapping any two rows instantly negates the determinant ($\det B = -\det A$). Try adjusting the sliders above to experiment with custom $3\times3$ matrices!
+        </div>
+    </div>
+
+    <script>
+        // Initial matrix corresponding to Exercise 3
+        let matrix = [
+            [1, 2, 0],
+            [0, 3, 1],
+            [2, 1, 1]
+        ];
+
+        let isSwapped = true; // Exercise 3 starts with rows 1 & 2 swapped
+
+        function computeDeterminant(m) {
+            return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+                   m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+                   m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+        }
+
+        function getActiveMatrix() {
+            let active = matrix.map(row => [...row]);
+            if (isSwapped) {
+                let temp = active[0];
+                active[0] = active[1];
+                active[1] = temp;
+            }
+            return active;
+        }
+
+        function render() {
+            // Render Matrix A (Always unswapped)
+            const gridA = document.getElementById('matrixA');
+            gridA.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = `matrix-cell row-${i}`;
+                    cell.innerText = matrix[i][j];
+                    gridA.appendChild(cell);
+                }
+            }
+            document.getElementById('detA').innerText = computeDeterminant(matrix);
+
+            // Render Matrix B (Swapped or not based on toggle)
+            const gridB = document.getElementById('matrixB');
+            gridB.innerHTML = '';
+            let activeB = getActiveMatrix();
+            
+            // Determine display rows mapping colors
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const cell = document.createElement('div');
+                    // Color code based on original row identity
+                    let origRowIdx = isSwapped ? (i === 0 ? 1 : i === 1 ? 0 : 2) : i;
+                    cell.className = `matrix-cell row-${origRowIdx}`;
+                    cell.innerText = activeB[i][j];
+                    gridB.appendChild(cell);
+                }
+            }
+            document.getElementById('detB').innerText = computeDeterminant(activeB);
+            document.getElementById('matrixBTitle').innerText = isSwapped ? "Matrix B (Rows 1 & 2 Swapped)" : "Matrix B (Unswapped)";
+            document.getElementById('swapBtn').innerText = isSwapped ? "Restore Original Rows" : "Swap Rows 1 & 2";
+        }
+
+        function initSliders() {
+            const container = document.getElementById('slidersContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const group = document.createElement('div');
+                    group.className = 'control-group';
+
+                    const label = document.createElement('label');
+                    label.htmlFor = `slider_${i}_${j}`;
+                    label.innerText = `Element A[${i+1}][${j+1}]: <span id="val_${i}_${j}">${matrix[i][j]}</span>`;
+                    
+                    const slider = document.createElement('input');
+                    slider.type = 'range';
+                    slider.min = '-5';
+                    slider.max = '5';
+                    slider.value = matrix[i][j];
+                    slider.id = `slider_${i}_${j}`;
+
+                    slider.addEventListener('input', (e) => {
+                        matrix[i][j] = parseInt(e.target.value);
+                        render();
+                        // Update label text dynamically
+                        document.querySelector(`label[for='slider_${i}_${j}']`).innerHTML = `Element A[${i+1}][${j+1}]: <b>${matrix[i][j]}</b>`;
+                    });
+
+                    group.appendChild(label);
+                    group.appendChild(slider);
+                    container.appendChild(group);
+                }
+            }
+        }
+
+        document.getElementById('swapBtn').addEventListener('click', () => {
+            isSwapped = !isSwapped;
+            render();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            matrix = [
+                [1, 2, 0],
+                [0, 3, 1],
+                [2, 1, 1]
+            ];
+            isSwapped = true;
+            initSliders();
+            render();
+        });
+
+        // Initial setup
+        initSliders();
+        render();
+    </script>
+</body>
+</html>
